@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using WebApiNetCore.Models;
 
 namespace WebApiNetCore.Data
@@ -12,11 +13,32 @@ namespace WebApiNetCore.Data
         }
         public async Task<ServiceResponse<string>> Login(string username, string password)
         {
-            throw new NotImplementedException();
+            ServiceResponse<string> response = new ServiceResponse<string>();
+            User user = await _context.Users.FirstOrDefaultAsync(x => x.UserName.ToLower().Equals(username.ToLower()));
+            if(user == null)
+            {
+                response.Success = false;
+                response.Message = "User not found.";
+            }
+            else if(!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt)){
+                response.Success = false;
+                response.Message = "Wrong password.";
+            }
+            else{
+                response.Data = user.Id.ToString();
+            }
+            return response;
         }
 
         public async Task<ServiceResponse<int>> Register(User user, string password)
         {
+            ServiceResponse<int> response = new ServiceResponse<int>();
+            if(await UserExists(user.UserName)){
+                response.Success = false;
+                response.Message = "User already exists.";
+                return response;
+            }
+
             CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
 
             user.PasswordHash = passwordHash;
@@ -24,14 +46,17 @@ namespace WebApiNetCore.Data
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
-            ServiceResponse<int> response = new ServiceResponse<int>();
+            
             response.Data = user.Id;
             return response;
         }
 
-        public Task<bool> UserExists(string username)
+        public async Task<bool> UserExists(string username)
         {
-            throw new NotImplementedException();
+            if(await _context.Users.AnyAsync(x => x.UserName.ToLower() == username.ToLower())){
+                return true;
+            }
+            return false;
         }
         
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt){
@@ -39,6 +64,20 @@ namespace WebApiNetCore.Data
             {
                 passwordSalt = hmac.Key;
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt){
+           using( var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+            {
+                var computeHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                for(int i = 0; i < computeHash.Length; i++){
+                    if(computeHash[i] != passwordHash[i])
+                    {
+                        return false;
+                    }                    
+                }
+                return true;
             }
         }
     }
