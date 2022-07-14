@@ -84,7 +84,8 @@ namespace WebApiNetCore.Services.CharacterService
             ServiceResponse<GetCharacterDto> serviceResponse = new ServiceResponse<GetCharacterDto>();
             try
             {
-                Character character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
+                Character character = await _context.Characters.Include( c => c.User).FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
+                if(character.User.Id == GetUserId()){
                 character.Name = updateCharacter.Name;
                 character.Class = updateCharacter.Class;
                 character.Defense = updateCharacter.Defense;
@@ -96,6 +97,11 @@ namespace WebApiNetCore.Services.CharacterService
                 await _context.SaveChangesAsync();
 
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+                }
+                else{
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character not found";
+                }
             }
             catch (Exception ex)
             {
