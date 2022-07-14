@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApiNetCore.Dtos.Character;
 using WebApiNetCore.Models;
@@ -5,6 +7,7 @@ using WebApiNetCore.Services.CharacterService;
 
 namespace WebApiNetCore.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class CharacterController : ControllerBase
