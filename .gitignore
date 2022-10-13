@@ -1,4 +1,10 @@
+/.nuke
 /.vscode
 /bin
 /Migrations
 /obj
+/build
+/build.cmd
+/build.ps1
+/build.sh
+

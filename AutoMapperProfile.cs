@@ -1,5 +1,7 @@
 using AutoMapper;
-using WebApiNetCore.Dtos.Character;
+using WebApiNetCore.Dtos;
+using WebApiNetCore.Dtos.Device;
+using WebApiNetCore.Dtos.Gateway;
 using WebApiNetCore.Models;
 
 namespace WebApiNetCore
@@ -8,8 +10,10 @@ namespace WebApiNetCore
     {
         public AutoMapperProfile()
         {
-            CreateMap<Character, GetCharacterDto>();
-            CreateMap<AddCharacterDto, Character>();
+            CreateMap<Gateway, GetGatewayDto>();
+            CreateMap<AddGatewayDto, Gateway>();
+            CreateMap<PeripheralDevice, GetDeviceDto>();
+            CreateMap<AddDeviceDto, PeripheralDevice>();
         }
     }
 }
